@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import tw from 'twrnc';
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
@@ -8,7 +8,6 @@ import OAuth from '../../components/OAuth';
 import { useSignUp } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import PendingVerification from './PendingVerification';
-import { fetchAPI } from '../../api/fetch';
 
 const Signup = ({ navigation }) => {
 
@@ -17,30 +16,24 @@ const Signup = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [pendingVerification, setPendingVerification] = React.useState(false)
-  const [code, setCode] = React.useState('')
+  const [pendingVerification, setPendingVerification] = useState(false)
+  const [code, setCode] = useState('')
 
   const onSignUpPress = async () => {
     if (!isLoaded) return
 
     console.log(email, password)
 
-    // Start sign-up process using email and password provided
     try {
       await signUp.create({
         emailAddress: email,
         password,
       })
 
-      // Send user an email with verification code
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
 
-      // Set 'pendingVerification' to true to display second form
-      // and capture OTP code
       setPendingVerification(true)
     } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
       console.error(JSON.stringify(err, null, 2))
     }
   }
@@ -49,18 +42,14 @@ const Signup = ({ navigation }) => {
     if (!isLoaded) return
 
     try {
-      // Use the code the user provided to attempt verification
       const signUpAttempt = await signUp.attemptEmailAddressVerification({
         code,
       })
 
-      // If verification was completed, set the session to active
-      // and redirect the user
       console.log('SignUp Attempt Status:', signUpAttempt.status)
       if (signUpAttempt.status === 'complete') {
         await setActive({ session: signUpAttempt.createdSessionId })
         
-        // Store user data in Neon DB
         try {
           const userData = {
             name: name,
@@ -70,8 +59,7 @@ const Signup = ({ navigation }) => {
           
           console.log('Attempting to store user data in Neon DB:', userData);
           
-          // Use the correct API endpoint
-          const response = await fetch('http://192.168.0.192:8081/api/user', {
+          const response = await fetch('http://192.168.0.192:3000/api/user', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -80,7 +68,6 @@ const Signup = ({ navigation }) => {
             body: JSON.stringify(userData)
           });
 
-          // Log the raw response for debugging
           const responseText = await response.text();
           console.log('Raw API Response:', responseText);
 
@@ -100,24 +87,18 @@ const Signup = ({ navigation }) => {
           
           if (responseData.error) {
             console.error('Error storing in Neon DB:', responseData.error);
-            // You might want to show an error message to the user here
           } else {
             console.log('Successfully stored user in Neon DB:', responseData.data);
           }
         } catch (dbError) {
           console.error('Failed to store in Neon DB:', dbError);
-          // You might want to show an error message to the user here
         }
         
         router.replace('/')
       } else {
-        // If the status is not complete, check why. User may need to
-        // complete further steps.
         console.error('SignUp attempt not complete:', JSON.stringify(signUpAttempt, null, 2))
       }
     } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
       console.error('Verification error:', JSON.stringify(err, null, 2))
     }
   }
@@ -128,11 +109,10 @@ const Signup = ({ navigation }) => {
         code={code}
         setCode={setCode}
         onVerifyPress={onVerifyPress}
-        loading={false} // set to `true` during API call if needed
+        loading={false}
       />
     );
   }
-
 
   return (
     <ScrollView style={[styles.container, tw`bg-white`]}>
@@ -145,7 +125,7 @@ const Signup = ({ navigation }) => {
       </View>
 
       <View style={styles.formContainer}>
-        <Text style={[styles.title, { fontFamily:FONTS.bold }]}>
+        <Text style={[styles.title, { fontFamily: FONTS.bold }]}>
           Create Account
         </Text>
         
@@ -179,16 +159,14 @@ const Signup = ({ navigation }) => {
 
         <View style={styles.loginContainer}>
           <TouchableOpacity onPress={() => navigation.navigate('Signin')}>
-            <Text style={[styles.loginText, {  }]}>
+            <Text style={styles.loginText}>
               Already have an account?{' '}
-              <Text style={{  }}>
+              <Text>
                 Log In
               </Text>
             </Text>
           </TouchableOpacity>
         </View>
-        
-        {/* <Verification Model/> */}
       </View>
     </ScrollView>
   );
@@ -209,25 +187,11 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   formContainer: {
-    // padding: 20,
     padding: 20,
-    // marginBottom: 20,
   },
   title: {
     fontSize: 28,
     marginBottom: 15,
-    // color: COLORS.primary,
-  },
-  button: {
-    width: '100%',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
   },
   loginContainer: {
     marginTop: 20,
@@ -235,7 +199,6 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 14,
-    // color: COLORS.secondary,
   },
 });
 
