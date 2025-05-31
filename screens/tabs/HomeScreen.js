@@ -1,5 +1,7 @@
 import { ActivityIndicator, FlatList, Image, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
+import * as Location from 'expo-location';
+
 import { useUser } from '@clerk/clerk-expo';
 import { SignOutButton } from '../auth/SignOutBotton';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,6 +9,9 @@ import RideCard from '../../components/RideCard';
 import { icons, images } from '../../constants';
 // import { SignOutButton } from './auth/SignOutBotton';
 import tw from 'twrnc';
+import GoogleTextInput from '../../components/GoogleTextInput';
+import Map from '../../components/Map';
+import { useLocationStore } from '../../store';
 
 const recentRide = [
   {
@@ -107,9 +112,43 @@ const recentRide = [
   }
 ]
 const HomeScreen = () => {
+
+  const { setUserLocation, setDestinationLocation } = useLocationStore();
   const { user } = useUser();
   // const (loading, setLoading) = React.useState(true);
   const isLoading = false; // Simulating loading state, replace with actual loading logic if needed
+
+  const [hasPermission, setHasPermission] = React.useState(false);
+  const handleDestinationPress = () => {
+    // Function to handle destination search
+    console.log("Destination search pressed");
+  };
+
+  useEffect(() => {
+    const requestLocation = async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Permission to access location was denied');
+        setHasPermission(false);
+        return;
+      };
+      let location = await Location.getCurrentPositionAsync({});
+
+      const address = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+
+      setUserLocation({
+        address: `${address[0].name}, ${address[0].region}` ,
+        longitude: location.coords.longitude,
+        latitude: location.coords.latitude, 
+        // longitude:37.78825,
+        // latitude: -122.4324,  
+      })
+    }
+    requestLocation();
+},[])
 
   return (
     <SafeAreaView style={styles.container}>
@@ -142,7 +181,8 @@ const HomeScreen = () => {
           </View>
         )}
         ListHeaderComponent={() => (
-          <View style={tw`flex-row items-center px-4 py-2`}>
+          <>
+            <View style={tw`flex-row items-center px-4 py-2`}>
             <Image
               source={{ uri: user?.imageUrl || 'https://via.placeholder.com/150' }}
               style={{ width: 30, height: 30, borderRadius: 40, marginRight: 10 }}
@@ -156,6 +196,24 @@ const HomeScreen = () => {
       {/* /> */}
             </View>
           </View>
+
+          <GoogleTextInput
+            icon ={icons.search}
+            containerStyle="bg-white shadow-md shadow-neutral-300 "
+            handlePress={handleDestinationPress} // Define this function to handle destination search
+          />
+          <>
+                <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 10, marginBottom: 10 }}>
+                  Your Current Location
+                </Text>
+                <View style={tw`flex flex-row items-center bg-transparent h-[300px]`}>
+                  <Map />
+                </View>
+                <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 10, marginBottom: 10 }}>
+                  Recent Rides
+                </Text>
+          </>
+          </>
         )}
         
       />
