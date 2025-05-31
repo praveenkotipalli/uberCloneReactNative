@@ -139,13 +139,20 @@ const HomeScreen = () => {
         longitude: location.coords.longitude,
       });
 
-      setUserLocation({
-        address: `${address[0].name}, ${address[0].region}` ,
-        longitude: location.coords.longitude,
-        latitude: location.coords.latitude, 
-        // longitude:37.78825,
-        // latitude: -122.4324,  
-      })
+      setUserLocation(
+        `${address[0].name}, ${address[0].region}`,
+        location.coords.longitude,
+        location.coords.latitude
+      );
+      
+
+      // setUserLocation({
+      //   address: `${address[0].name}, ${address[0].region}` ,
+      //   longitude: location.coords.longitude,
+      //   latitude: location.coords.latitude, 
+      //   // longitude:37.78825,
+      //   // latitude: -122.4324,  
+      // })
     }
     requestLocation();
 },[])
@@ -209,7 +216,7 @@ const HomeScreen = () => {
                 <View style={tw`flex flex-row items-center bg-transparent h-[300px]`}>
                   <Map />
                 </View>
-                <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 10, marginBottom: 10 }}>
+                <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 10, marginBottom: 8, marginTop: 10 }}>
                   Recent Rides
                 </Text>
           </>

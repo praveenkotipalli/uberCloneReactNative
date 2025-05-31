@@ -59,10 +59,12 @@ const Map = () => {
   const [markers, setMarkers] = React.useState([]);
 
   const region = calculateRegion({
-    userLongitude,
+    
     userLatitude,
-    destinationLongitude,
+    userLongitude,
+    
     destinationLatitude,
+    destinationLongitude,
   })
 
   useEffect(() => {
@@ -76,13 +78,21 @@ const Map = () => {
                               userLongitude 
                             });
       setMarkers(newMarkers);
+      // console.log('Lat:', userLatitude, 'Lng:', userLongitude);
+      // console.log('REGION:', region);
+
+
     }
-  },[])
+  },[userLatitude, userLongitude])
+
+  // console.log('REGION:', region);
+  // console.log('Lat:', userLatitude, 'Lng:', userLongitude);
+
   return (
     // <MapView provider={PROVIDER_DEFAULT} style={tw`w-full h-full rounded-2xl`}>
     //   <Text>Map</Text>
     // </MapView>
-    <>
+    <View style={tw`w-full h-full rounded-2xl`}>
     <MapView 
       provider={PROVIDER_DEFAULT} 
       style={tw`w-full h-full rounded-2xl`}
@@ -92,6 +102,9 @@ const Map = () => {
       showsPointsOfInterest={false}
       showsUserLocation={true}
       userInterfaceStyle='light'
+      zoomControlEnabled ={true}
+      zoomEnabled={true}
+      // showsMyLocationButton={true}
       >
         {markers.map((marker) => (
           <Marker
@@ -103,8 +116,22 @@ const Map = () => {
             pinColor={selectedDriver === marker.id ? 'blue' : 'red'} 
           />
         ))}
+        {/* {markers.map((marker) => {
+  console.log('MARKER:', marker);
+  return (
+    <Marker
+      key={marker.id}
+      coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
+      title={marker.title}
+      description={`Rating: ${marker.rating}`}
+      image={selectedDriver === marker.id ? icons.selectedMarker : icons.marker}
+      pinColor={selectedDriver === marker.id ? 'blue' : 'red'} 
+    />
+  )
+})} */}
+
     </MapView>
-    </>
+    </View>
   )
 }
 
