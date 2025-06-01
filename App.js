@@ -54,7 +54,7 @@ export default function App() {
   return (
     <ClerkProvider tokenCache={tokenCache} >
       <NavigationContainer>
-      <SafeAreaView style={tw`flex-1 bg-white`}>
+      <SafeAreaView style={tw`flex-1 bg-gray-100`}>
         <Stack.Navigator initialRouteName="Splash">
           <Stack.Screen 
             name="Splash" 
@@ -73,11 +73,11 @@ export default function App() {
             options={{ headerShown: false }}
          />
          
-          <Stack.Screen 
+          {/* <Stack.Screen 
             name="Home" 
             component={HomeScreen} 
             options={{ headerShown: false }} 
-          />
+          /> */}
 
           <Stack.Screen 
             name="Tabs" 

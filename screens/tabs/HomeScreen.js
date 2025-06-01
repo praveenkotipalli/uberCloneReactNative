@@ -9,9 +9,10 @@ import RideCard from '../../components/RideCard';
 import { icons, images } from '../../constants';
 // import { SignOutButton } from './auth/SignOutBotton';
 import tw from 'twrnc';
-import GoogleTextInput from '../../components/GoogleTextInput';
 import Map from '../../components/Map';
 import { useLocationStore } from '../../store';
+import OlaMapTextInput from '../../components/OlaMapTextInput';
+import { router, useNavigation } from 'expo-router';
 
 const recentRide = [
   {
@@ -113,15 +114,20 @@ const recentRide = [
 ]
 const HomeScreen = () => {
 
+  const navigation = useNavigation();
+
   const { setUserLocation, setDestinationLocation } = useLocationStore();
+  // const destinationLocation = useLocationStore((state) => state.destinationLocation);
   const { user } = useUser();
   // const (loading, setLoading) = React.useState(true);
-  const isLoading = false; // Simulating loading state, replace with actual loading logic if needed
-
+  const isLoading = false; // Simulating loading state, replace with actual loading logic if neede
   const [hasPermission, setHasPermission] = React.useState(false);
-  const handleDestinationPress = () => {
+  const handleDestinationPress = ({latitude, longitude, address}) => {
     // Function to handle destination search
     console.log("Destination search pressed");
+    setDestinationLocation(address, longitude, latitude);
+    console.log("Destination set to:", address, longitude, latitude);
+    navigation.navigate('Ride'); // Navigate to the Ride screen
   };
 
   useEffect(() => {
@@ -189,12 +195,12 @@ const HomeScreen = () => {
         )}
         ListHeaderComponent={() => (
           <>
-            <View style={tw`flex-row items-center px-4 py-2`}>
-            <Image
+            <View style={tw`flex-row items-center px-2 py-2`}>
+            {/* <Image
               source={{ uri: user?.imageUrl || 'https://via.placeholder.com/150' }}
               style={{ width: 30, height: 30, borderRadius: 40, marginRight: 10 }}
-            />
-            <Text style={{ fontSize: 15, fontWeight: 'bold' }}>{user?.fullName || user.emailAddresses[0].emailAddress.split('@')[0]}</Text>
+            /> */}
+            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Welcome, {user?.fullName || user.emailAddresses[0].emailAddress.split('@')[0]}👋🏻</Text>
             <View style={{  marginLeft: 'auto' }}>
               <SignOutButton />
               {/* <Image 
@@ -204,19 +210,19 @@ const HomeScreen = () => {
             </View>
           </View>
 
-          <GoogleTextInput
+          <OlaMapTextInput
             icon ={icons.search}
             containerStyle="bg-white shadow-md shadow-neutral-300 "
             handlePress={handleDestinationPress} // Define this function to handle destination search
           />
           <>
-                <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 10, marginBottom: 10 }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10, marginBottom: 10 }}>
                   Your Current Location
                 </Text>
                 <View style={tw`flex flex-row items-center bg-transparent h-[300px]`}>
                   <Map />
                 </View>
-                <Text style={{ fontSize: 20, fontWeight: 'bold', marginLeft: 10, marginBottom: 8, marginTop: 10 }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10, marginBottom: 5, marginTop: 10 }}>
                   Recent Rides
                 </Text>
           </>
