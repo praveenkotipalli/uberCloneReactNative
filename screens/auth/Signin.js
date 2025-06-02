@@ -19,14 +19,21 @@ const Signin = ({ navigation }) => {
 
   const { signIn, setActive, isLoaded } = useSignIn()
   const router = useRouter()
+  
 
 
   // const onSignUpPress = () => {}
 
   useEffect(() => {
     if (isSignedIn) {
-      navigation.navigate('Tabs');
+      // navigation.navigate/('Tabs');
       // return <Redirect href={'Home'} />
+      navigation.reset({
+        index: 0,
+        // routes: [{ name: 'Home' }], // or 'Main' or 'Dashboard', etc.
+        routes: [{ name: 'Tabs' }], // or 'Main' or 'Dashboard', etc.
+      });
+      
     }
   
   }, [isSignedIn])
@@ -48,6 +55,11 @@ const Signin = ({ navigation }) => {
       if (signInAttempt.status === 'complete') {
         await setActive({ session: signInAttempt.createdSessionId })
         router.replace('/')
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Home' }], // or 'Main' or 'Dashboard', etc.
+        });
+        
       } else {
         // If the status isn't complete, check why. User might need to
         // complete further steps.

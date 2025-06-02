@@ -28,7 +28,7 @@ const RideCard = ({
       <View style={tw`flex-row`}>
         <Image
           source={{
-            uri: `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=300&height=200&center=lonlat:${destination_longitude},${destination_latitude}&zoom=14&apiKey=${process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY}`,
+            uri: `https://maps.geoapify.com/v1/staticmap?style=osm-bright-smooth&width=300&height=200&center=lonlat:${destination_longitude},${destination_latitude}&zoom=14&apiKey=${process.env.EXPO_PUBLIC_GEOAPIFY_API_KEY}`,
           }}
           style={tw`w-24 h-24 rounded-lg`}
         />

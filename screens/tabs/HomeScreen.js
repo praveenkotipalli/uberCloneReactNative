@@ -12,7 +12,7 @@ import tw from 'twrnc';
 import Map from '../../components/Map';
 import { useLocationStore } from '../../store';
 import OlaMapTextInput from '../../components/OlaMapTextInput';
-import { router, useNavigation } from 'expo-router';
+import { router, useNavigation, useRouter } from 'expo-router';
 
 const recentRide = [
   {
@@ -115,6 +115,7 @@ const recentRide = [
 const HomeScreen = () => {
 
   const navigation = useNavigation();
+  const router = useRouter();
 
   const { setUserLocation, setDestinationLocation } = useLocationStore();
   // const destinationLocation = useLocationStore((state) => state.destinationLocation);
@@ -127,7 +128,8 @@ const HomeScreen = () => {
     console.log("Destination search pressed");
     setDestinationLocation(address, longitude, latitude);
     console.log("Destination set to:", address, longitude, latitude);
-    navigation.navigate('Ride'); // Navigate to the Ride screen
+    // navigation.navigate('Ride'); // Navigate to the Ride screen
+    navigation.navigate('FindRide'); // Use expo-router to navigate to the FindRideScreen
   };
 
   useEffect(() => {
@@ -212,16 +214,19 @@ const HomeScreen = () => {
 
           <OlaMapTextInput
             icon ={icons.search}
-            containerStyle="bg-white shadow-md shadow-neutral-300 "
+            containerStyle="bg-white shadow-md shadow-neutral-300  "
             handlePress={handleDestinationPress} // Define this function to handle destination search
           />
           <>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10, marginBottom: 10 }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10, marginBottom: 10, marginTop: 4}}>
                   Your Current Location
                 </Text>
-                <View style={tw`flex flex-row items-center bg-transparent h-[300px]`}>
-                  <Map />
-                </View>
+                <View style={{ marginHorizontal: 14, marginTop: 4, marginBottom: 4, borderRadius: 10, overflow: 'hidden' }}>
+  <View style={[tw`h-[300px]`, { borderRadius: 10 }]}>
+    <Map />
+  </View>
+</View>
+
                 <Text style={{ fontSize: 18, fontWeight: 'bold', marginLeft: 10, marginBottom: 5, marginTop: 10 }}>
                   Recent Rides
                 </Text>

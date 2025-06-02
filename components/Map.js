@@ -97,13 +97,20 @@ const Map = () => {
       provider={PROVIDER_DEFAULT} 
       style={tw`w-full h-full rounded-2xl`}
       tintColor='black'
-      // mapType='mutedStandard'
+      // mapType='standard'
+      // mapType={'mutedStandard'}
       initialRegion={region}
       showsPointsOfInterest={false}
       showsUserLocation={true}
       userInterfaceStyle='light'
       zoomControlEnabled ={true}
       zoomEnabled={true}
+      // showsCompass={true}
+      // showsScale={true}
+      showsTraffic={true}
+      showsIndoors={true}
+      showsBuildings={true}
+      customMapStyle={mutedMapStyle}
       // showsMyLocationButton={true}
       >
         {markers.map((marker) => (
@@ -138,3 +145,51 @@ const Map = () => {
 export default Map
 
 const styles = StyleSheet.create({})
+
+
+const mutedMapStyle = [
+  {
+    featureType: "all",
+    stylers: [
+      { saturation: -80 },
+      { lightness: 20 }
+    ]
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [
+      { lightness: 100 },
+      { visibility: "simplified" }
+    ]
+  },
+  {
+    featureType: "water",
+    stylers: [
+      { saturation: -10 },
+      { lightness: 30 }
+    ]
+  },
+  {
+    featureType: "transit",
+    elementType: "geometry",
+    stylers: [
+      { lightness: 50 }
+    ]
+  },
+  {
+    featureType: "poi",
+    elementType: "geometry",
+    stylers: [
+      { lightness: 21 }
+    ]
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.text.stroke",
+    stylers: [
+      { lightness: -4 },
+      { color: "#ffffff" }
+    ]
+  }
+];

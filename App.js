@@ -24,6 +24,10 @@ import HomeScreen from './screens/tabs/HomeScreen';
 // import ChatsScreen from './screens/tabs/ChatsScreen';
 // import ProfileScreen from './screens/tabs/ProfileScreen';
 import Tabs from './screens/tabs';
+
+import FindRideScreen from './screens/findRide/FindRideScreen';
+import ConfirmRideScreen from './screens/confirmRide/ConfirmRideScreen';
+import BookRide from './screens/bookRide/BookRide';
 // import Signup from './auth/signup';
 // import Signup from './auth/signup';
 
@@ -78,6 +82,23 @@ export default function App() {
             component={HomeScreen} 
             options={{ headerShown: false }} 
           /> */}
+          <Stack.Screen 
+            name='FindRide'
+            component={FindRideScreen}
+            options={{ headerShown: false }}
+          />
+
+<Stack.Screen 
+            name='ConfirmRide'
+            component={ConfirmRideScreen}
+            options={{ headerShown: false }}
+          />
+
+<Stack.Screen 
+            name='book-ride'
+            component={BookRide}
+            options={{ headerShown: false }}
+          />
 
           <Stack.Screen 
             name="Tabs" 
