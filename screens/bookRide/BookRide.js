@@ -6,6 +6,8 @@ import RideLayout from "../../components/RideLayout";
 import { icons } from "../../constants";
 import tw from 'twrnc';
 import Payment from "../../components/Payment";
+import { useEffect, useState } from "react";
+import { StripeProvider } from "@stripe/stripe-react-native";
 
 const BookRide = () => {
   const { user } = useUser();
@@ -16,7 +18,24 @@ const BookRide = () => {
     (driver) => +driver.id === selectedDriver
   );
 
+  // const [publishableKey, setPublishableKey] = useState('');
+
+  // const fetchPublishableKey = async () => {
+  //   // const key = await fetchKey(); // fetch key from your server here
+  //   // setPublishableKey(key);
+  // };
+
+  // useEffect(() => {
+  //   fetchPublishableKey();
+  // }, []);
+
   return (
+
+    <StripeProvider
+    publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY} // replace with your Stripe publishable key
+    merchantIdentifier="merchant.identifier" // required for Apple Pay
+    urlScheme="your-url-scheme" // required for 3D Secure and bank redirects
+  >
     <RideLayout title="Book Ride" >
       <>
       <Text style={tw`text-xl font-semibold mb-`}>
@@ -99,6 +118,7 @@ const BookRide = () => {
 
       </>
     </RideLayout>
+    </StripeProvider>
   );
 };
 
