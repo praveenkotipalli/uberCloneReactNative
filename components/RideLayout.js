@@ -34,7 +34,7 @@ const RideLayout = ({ title, children, bottomSheetRef }) => {
           <BottomSheet
             ref={bottomSheetRef}
             index={1}
-            snapPoints={['40%', '80%']}
+            snapPoints={['40%', '75%']}
             handleIndicatorStyle={{ backgroundColor: '#000' }}
           >
             <BottomSheetView style={tw`flex-1 p-2`}>
