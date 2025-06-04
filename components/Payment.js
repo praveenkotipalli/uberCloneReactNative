@@ -1,10 +1,15 @@
-import { Alert, StyleSheet, Text, View } from 'react-native'
+import { Alert, Image, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import CustomButton from './CustomButton'
 import { useStripe } from '@stripe/stripe-react-native';
 import { useLocationStore } from '../store';
 import { useUser } from '@clerk/clerk-expo';
 import { useAuth } from '@clerk/clerk-expo';
+import { images } from '../constants';
+import ReactNativeModal from 'react-native-modal';
+import { useNavigation } from 'expo-router';
+import tw from 'twrnc';
+
 
 const API_URL = 'http:///10.56.2.157:3000'; // Replace with your backend URL
 // const API_URL = 'http://192.168.195.96:3000';
@@ -12,6 +17,9 @@ const API_URL = 'http:///10.56.2.157:3000'; // Replace with your backend URL
 const Payment = ({fullName, email, amount, driverId, rideTime}) => {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [sheetReady, setSheetReady] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const navigation = useNavigation();
   const  {
     userAddress,
     userLongitude,
@@ -60,7 +68,7 @@ const Payment = ({fullName, email, amount, driverId, rideTime}) => {
     if (error) {
       Alert.alert(`Error ${error.code}`, error.message);
     } else {
-      Alert.alert('Success', 'Payment confirmed!');
+      setSuccess(true);
   
       // Only now, call /api/rides to store the ride
       const rideRes = await fetch(`${API_URL}/api/rides`, {
@@ -88,9 +96,41 @@ const Payment = ({fullName, email, amount, driverId, rideTime}) => {
   
 
   return (
+    <>
+    
     <CustomButton title="Confirm Ride" 
-    // disabled={!amount} 
+    disabled={!amount} 
     onPress={openSheet} />
+<ReactNativeModal
+      isVisible={success}
+      onBackdropPress={() => setSuccess(false)}
+      style={{zIndex:1100}}
+    >
+      <View style={tw`flex flex-col items-center justify-center bg-white p-7 rounded-2xl`}>
+        <Image source={images.check} style={tw`w-28 h-28 mt-5`} />
+
+        <Text style={tw`text-2xl text-center font-bold mt-5`}>
+          Booking placed successfully
+        </Text>
+
+        <Text style={tw`text-base text-gray-500 text-center mt-3`}>
+          Thank you for your booking. Your reservation has been successfully
+          placed. Please proceed with your trip.
+        </Text>
+
+        <CustomButton
+          title="Back Home"
+          onPress={() => {
+            setSuccess(false);
+            navigation.navigate('Tabs');
+          }}
+          style={tw`mt-5`}
+        />
+      </View>
+    </ReactNativeModal>
+
+    </>
+    
   );
 }
 

@@ -125,9 +125,9 @@ const HomeScreen = () => {
   const [hasPermission, setHasPermission] = React.useState(false);
   const handleDestinationPress = ({latitude, longitude, address}) => {
     // Function to handle destination search
-    console.log("Destination search pressed");
+    // console.log("Destination search pressed");
     setDestinationLocation(address, longitude, latitude);
-    console.log("Destination set to:", address, longitude, latitude);
+    // console.log("Destination set to:", address, longitude, latitude);
     // navigation.navigate('Ride'); // Navigate to the Ride screen
     navigation.navigate('FindRide'); // Use expo-router to navigate to the FindRideScreen
   };
