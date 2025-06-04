@@ -1,118 +1,166 @@
-import { StyleSheet, View } from 'react-native'
-// import {MapView, PROVIDER_DEFAULT} from 'react-native-maps'
-import React, { useEffect } from 'react'
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import tw from 'twrnc';
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { useDriverStore, useLocationStore } from '../store';
-import { calculateRegion, generateMarkersFromData } from '../utils/map';
+import { calculateDriverTimes, calculateRegion, generateMarkersFromData } from '../utils/map';
 import { icons } from '../constants';
 
-const drivers = [
-  {
-      "id": "1",
-      "first_name": "James",
-      "last_name": "Wilson",
-      "profile_image_url": "https://ucarecdn.com/dae59f69-2c1f-48c3-a883-017bcf0f9950/-/preview/1000x666/",
-      "car_image_url": "https://ucarecdn.com/a2dc52b2-8bf7-4e49-9a36-3ffb5229ed02/-/preview/465x466/",
-      "car_seats": 4,
-      "rating": "4.80"
-  },
-  {
-      "id": "2",
-      "first_name": "David",
-      "last_name": "Brown",
-      "profile_image_url": "https://ucarecdn.com/6ea6d83d-ef1a-483f-9106-837a3a5b3f67/-/preview/1000x666/",
-      "car_image_url": "https://ucarecdn.com/a3872f80-c094-409c-82f8-c9ff38429327/-/preview/930x932/",
-      "car_seats": 5,
-      "rating": "4.60"
-  },
-  {
-      "id": "3",
-      "first_name": "Michael",
-      "last_name": "Johnson",
-      "profile_image_url": "https://ucarecdn.com/0330d85c-232e-4c30-bd04-e5e4d0e3d688/-/preview/826x822/",
-      "car_image_url": "https://ucarecdn.com/289764fb-55b6-4427-b1d1-f655987b4a14/-/preview/930x932/",
-      "car_seats": 4,
-      "rating": "4.70"
-  },
-  {
-      "id": "4",
-      "first_name": "Robert",
-      "last_name": "Green",
-      "profile_image_url": "https://ucarecdn.com/fdfc54df-9d24-40f7-b7d3-6f391561c0db/-/preview/626x417/",
-      "car_image_url": "https://ucarecdn.com/b6fb3b55-7676-4ff3-8484-fb115e268d32/-/preview/930x932/",
-      "car_seats": 4,
-      "rating": "4.90"
+import polyline from '@mapbox/polyline';
+
+/** Ola returns geometry encoded with polyline-algorithm */
+export const decodePolyline = (encoded) =>
+  polyline.decode(encoded).map(([lat, lng]) => ({ latitude: lat, longitude: lng }));
+
+/**
+ * Ask Ola Maps for a route and give back decoded coordinates
+ */
+export const fetchRoute = async (origin, destination, apiKey) => {
+  const url = `https://api.olamaps.io/routing/v1/directions?origin=${origin.latitude},${origin.longitude}&destination=${destination.latitude},${destination.longitude}&overview=full&api_key=${apiKey}`;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!res.ok) {
+      console.error('HTTP error', res.status, await res.text());
+      return [];
+    }
+
+    const json = await res.json();
+    // console.log('Ola Maps response:', JSON.stringify(json));
+
+    const encodedPolyline = json.routes?.[0]?.overview_polyline;
+
+    if (encodedPolyline && encodedPolyline.length > 0) {
+      return decodePolyline(encodedPolyline);
+    }
+
+    console.warn('No polyline found in route');
+    return [];
+  } catch (err) {
+    console.error('Error fetching route:', err);
+    return [];
   }
-]
+};
 
 const Map = () => {
-
   const {
     userLongitude,
     userLatitude,
     destinationLongitude,
     destinationLatitude,
-  }  = useLocationStore();
+  } = useLocationStore();
+
+  const origin = { longitude: userLongitude, latitude: userLatitude };
+  const destination = { longitude: destinationLongitude, latitude: destinationLatitude };
+
+  const [routeCoordinates, setRouteCoordinates] = useState([]);
+  const [loadingRoute, setLoadingRoute] = useState(false);
+
+  const apiKey = process.env.EXPO_PUBLIC_OLA_API_KEY;
+
+  
 
   const { selectedDriver, setDriver } = useDriverStore();
-  const [markers, setMarkers] = React.useState([]);
+  const [drivers, setDrivers] = useState([]);
+  const [markers, setMarkers] = useState([]);
 
   const region = calculateRegion({
-    
     userLatitude,
     userLongitude,
-    
     destinationLatitude,
     destinationLongitude,
-  })
+  });
+
+  const [loadingDrivers, setLoadingDrivers] = useState(false);
 
   useEffect(() => {
-    setDriver(drivers);
-    if(Array.isArray(drivers)){
-      if(!userLatitude || !userLongitude) return;
-
-      const newMarkers  = generateMarkersFromData
-                            ({ 
-                              data: drivers, 
-                              userLatitude, 
-                              userLongitude 
-                            });
+    if (Array.isArray(drivers) && userLatitude && userLongitude) {
+      const newMarkers = generateMarkersFromData({
+        data: drivers,
+        userLatitude,
+        userLongitude,
+      });
       setMarkers(newMarkers);
-      // console.log('Lat:', userLatitude, 'Lng:', userLongitude);
-      // console.log('REGION:', region);
-
-
     }
-  },[userLatitude, userLongitude])
+  },[drivers, userLatitude, userLongitude]);
 
-  // console.log('REGION:', region);
-  // console.log('Lat:', userLatitude, 'Lng:', userLongitude);
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      try {
+        setLoadingDrivers(true);
+        // const response = await fetch('http://192.168.0.192:3000/api/drivers');
+        const response = await fetch('http:///10.56.50.201:3000/api/drivers');
+        const json = await response.json();
+        const driverData = json.data;
+
+        setDriver(driverData);
+        setDrivers(driverData);
+      } catch (error) {
+        console.error('Failed to fetch drivers:', error);
+      } finally {
+        setLoadingDrivers(false);
+      }
+    };
+
+    fetchDrivers();
+  }, [userLatitude, userLongitude]);
+
+  useEffect(() => {
+    if(markers.length > 0 && destinationLatitude && destinationLongitude) {
+      calculateDriverTimes({
+        markers,
+        userLatitude,
+        userLongitude,
+        destinationLatitude,
+        destinationLongitude,
+      }).then((drivers) => {
+        setDriver(drivers);
+      });
+    }
+  }, [markers, destinationLatitude, destinationLongitude]);
+
+  useEffect(() => {
+    const getRoute = async () => {
+      if (!userLatitude || !userLongitude || !destinationLatitude || !destinationLongitude || !apiKey) {
+        setRouteCoordinates([]);
+        return;
+      }
+      setLoadingRoute(true);
+      const decodedCoordinates = await fetchRoute(origin, destination, apiKey);
+      setRouteCoordinates(decodedCoordinates);
+      setLoadingRoute(false);
+    };
+
+    getRoute();
+  }, [userLatitude, userLongitude, destinationLatitude, destinationLongitude, apiKey]);
+
+  if (loadingDrivers || loadingRoute || !userLatitude || !userLongitude) {
+    return(
+      <View style={tw`flex justify-center items-center w-full h-full`}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
-    // <MapView provider={PROVIDER_DEFAULT} style={tw`w-full h-full rounded-2xl`}>
-    //   <Text>Map</Text>
-    // </MapView>
     <View style={tw`w-full h-full rounded-2xl`}>
-    <MapView 
-      provider={PROVIDER_DEFAULT} 
-      style={tw`w-full h-full rounded-2xl`}
-      tintColor='black'
-      // mapType='standard'
-      // mapType={'mutedStandard'}
-      initialRegion={region}
-      showsPointsOfInterest={false}
-      showsUserLocation={true}
-      userInterfaceStyle='light'
-      zoomControlEnabled ={true}
-      zoomEnabled={true}
-      // showsCompass={true}
-      // showsScale={true}
-      showsTraffic={true}
-      showsIndoors={true}
-      showsBuildings={true}
-      customMapStyle={mutedMapStyle}
-      // showsMyLocationButton={true}
+      <MapView
+        provider={PROVIDER_DEFAULT}
+        style={tw`w-full h-full rounded-2xl`}
+        initialRegion={region}
+        showsPointsOfInterest={false}
+        showsUserLocation={true}
+        userInterfaceStyle="light"
+        zoomControlEnabled={true}
+        zoomEnabled={true}
+        showsTraffic={true}
+        showsIndoors={true}
+        showsBuildings={true}
+        customMapStyle={mutedMapStyle}
       >
         {markers.map((marker) => (
           <Marker
@@ -121,32 +169,34 @@ const Map = () => {
             title={marker.title}
             description={`Rating: ${marker.rating}`}
             image={selectedDriver === marker.id ? icons.selectedMarker : icons.marker}
-            pinColor={selectedDriver === marker.id ? 'blue' : 'red'} 
+            pinColor={selectedDriver === marker.id ? 'blue' : 'red'}
           />
         ))}
-        {/* {markers.map((marker) => {
-  console.log('MARKER:', marker);
-  return (
-    <Marker
-      key={marker.id}
-      coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
-      title={marker.title}
-      description={`Rating: ${marker.rating}`}
-      image={selectedDriver === marker.id ? icons.selectedMarker : icons.marker}
-      pinColor={selectedDriver === marker.id ? 'blue' : 'red'} 
-    />
-  )
-})} */}
-
-    </MapView>
+        {destinationLatitude && destinationLongitude && (
+          <>
+            <Marker
+              key="destination"
+              coordinate={{ latitude: destinationLatitude, longitude: destinationLongitude }}
+              title='Destination'
+              image={icons.pin}
+            />
+            {routeCoordinates.length > 0 && (
+              <Polyline
+                coordinates={routeCoordinates}
+                strokeColor="blue"
+                strokeWidth={3}
+              />
+            )}
+          </>
+        )}
+      </MapView>
     </View>
-  )
-}
+  );
+};
 
-export default Map
+export default Map;
 
-const styles = StyleSheet.create({})
-
+const styles = StyleSheet.create({});
 
 const mutedMapStyle = [
   {

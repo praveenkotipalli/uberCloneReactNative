@@ -38,7 +38,7 @@ const BookRide = () => {
   >
     <RideLayout title="Book Ride" >
       <>
-      <Text style={tw`text-xl font-semibold mb-`}>
+      <Text style={tw`text-xl font-semibold `}>
           Ride Information
         </Text>
 
@@ -73,7 +73,7 @@ const BookRide = () => {
           <View style={tw`flex flex-row items-center justify-between w-full border-b border-white py-3`}>
             <Text style={tw`text-lg font-normal text-white`}>Pickup Time</Text>
             <Text style={tw`text-lg font-normal text-white`}>
-              {formatTime(driverDetails?.time || 5)}
+              {Math.round(driverDetails?.time || 5)} min
             </Text>
           </View>
 
@@ -113,7 +113,15 @@ const BookRide = () => {
       </View>
     </View>
   </View>
-  <Payment />
+  <Payment 
+  fullName={user?.fullName || "John Doe"}
+  email={user?.emailAddresses[0].emailAddress}
+  amount={driverDetails?.price } // amount in cents
+  driverId={driverDetails?.id} // pass driver ID if needed
+  rideTime={Math.round(driverDetails?.time || 5)}
+ // ride time in minutes
+  />
+  
 </View>
 
       </>

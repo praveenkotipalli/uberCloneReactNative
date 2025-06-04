@@ -12,9 +12,9 @@ const RideLayout = ({ title, children, bottomSheetRef }) => {
   
     return (
       <GestureHandlerRootView>
-        <View style={tw`flex-1 bg-white`}>
+        <View style={tw`flex-1 bg-white `}>
           <View style={tw`flex flex-col h-screen`}>
-            <View style={tw`flex flex-row absolute z-10 top-3 pl-4`}>
+            <View style={tw`flex flex-row absolute z-1 top-3 pl-4`}>
               <TouchableOpacity onPress={() => navigation.goBack()}>
                 <View style={tw`bg-white rounded-full w-8 h-8 justify-center`}>
                   <Image
@@ -33,11 +33,12 @@ const RideLayout = ({ title, children, bottomSheetRef }) => {
   
           <BottomSheet
             ref={bottomSheetRef}
-            index={1}
-            snapPoints={['40%', '75%']}
+            index={2}
+            snapPoints={['40%', '70%']}
             handleIndicatorStyle={{ backgroundColor: '#000' }}
+            style={tw`bg-white rounded-t-3xl shadow-lg z-20`}
           >
-            <BottomSheetView style={tw`flex-1 p-2`}>
+            <BottomSheetView style={tw`flex-1 p-2 z-10`}>
               {children}
             </BottomSheetView>
           </BottomSheet>
@@ -50,3 +51,6 @@ const RideLayout = ({ title, children, bottomSheetRef }) => {
 export default RideLayout
 
 const styles = StyleSheet.create({})
+
+
+// mak the bottomSheet on top of all ootheer layoouts

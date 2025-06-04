@@ -1,5 +1,5 @@
 import {
-  FlatList,
+  
   Image,
   StyleSheet,
   Text,
@@ -13,6 +13,7 @@ import DriverCard from '../../components/DriverCard';
 import CustomButton from '../../components/CustomButton';
 import { useNavigation } from 'expo-router';
 import { useDriverStore } from '../../store';
+import { FlatList } from 'react-native-gesture-handler';
 
 // const drivers = [
 //   {
@@ -67,9 +68,10 @@ const ConfirmRideScreen = () => {
 
   const navigation = useNavigation();
   return (
-    <RideLayout title="Choose a Driver">
+    <RideLayout title="Choose a Driver" >
       <FlatList
         data={drivers}
+        style={tw`flex-1`}
         keyExtractor={(item) => item.id}
         contentContainerStyle={tw`p-3 pb-20`}
         renderItem={({ item }) => (

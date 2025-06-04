@@ -1,11 +1,50 @@
-const directionsAPI = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
+const EXPO_PUBLIC_OLA_API_KEY = process.env.EXPO_PUBLIC_OLA_API_KEY;
 
-export const generateMarkersFromData = ({
-  data,
-  userLatitude,
-  userLongitude,
-}) => {
-  return data.map((driver) => {
+/******************************************************************
+ * 1. Tiny helper – ask Ola Maps Directions for a duration (secs) *
+ ******************************************************************/
+const getOlaDurationSeconds = async (
+  originLat,
+  originLng,
+  destLat,
+  destLng
+) => {
+  console.log("Calling Ola API with:");
+  console.log("Origin:", originLat, originLng);
+  console.log("Destination:", destLat, destLng);
+
+  const url =
+    `https://api.olamaps.io/routing/v1/directions` +
+    `?origin=${originLat},${originLng}` +
+    `&destination=${destLat},${destLng}` +
+    `&alternatives=false&steps=false&overview=false&traffic_metadata=false` +
+    `&api_key=${EXPO_PUBLIC_OLA_API_KEY}`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const json = await res.json();
+  console.log("Ola Maps response:", json);
+
+  if (json?.status === "SUCCESS" && Array.isArray(json.routes) && json.routes[0]) {
+    return json.routes[0].legs[0].duration;
+  }
+
+  throw new Error(
+    `Unexpected Ola Maps response: ${JSON.stringify(json).slice(0, 200)}`
+  );
+};
+
+
+/****************************************************
+ * 2. Marker helpers (unchanged except for comments) *
+ ****************************************************/
+export const generateMarkersFromData = ({ data, userLatitude, userLongitude }) =>
+  data.map((driver) => {
     const latOffset = (Math.random() - 0.5) * 0.01;
     const lngOffset = (Math.random() - 0.5) * 0.01;
 
@@ -16,7 +55,6 @@ export const generateMarkersFromData = ({
       ...driver,
     };
   });
-};
 
 export const calculateRegion = ({
   userLatitude,
@@ -50,17 +88,17 @@ export const calculateRegion = ({
   const latitudeDelta = (maxLat - minLat) * 1.3;
   const longitudeDelta = (maxLng - minLng) * 1.3;
 
-  const latitude = (userLatitude + destinationLatitude) / 2;
-  const longitude = (userLongitude + destinationLongitude) / 2;
-
   return {
-    latitude,
-    longitude,
+    latitude: (userLatitude + destinationLatitude) / 2,
+    longitude: (userLongitude + destinationLongitude) / 2,
     latitudeDelta,
     longitudeDelta,
   };
 };
 
+/**************************************************************
+ * 3. MAIN – get ETA & price using Ola Maps instead of Google *
+ **************************************************************/
 export const calculateDriverTimes = async ({
   markers,
   userLatitude,
@@ -77,28 +115,29 @@ export const calculateDriverTimes = async ({
     return;
 
   try {
-    const timesPromises = markers.map(async (marker) => {
-      const responseToUser = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${marker.latitude},${marker.longitude}&destination=${userLatitude},${userLongitude}&key=${directionsAPI}`
+    const promises = markers.map(async (marker) => {
+      const timeToUser = await getOlaDurationSeconds(
+        marker.latitude,
+        marker.longitude,
+        userLatitude,
+        userLongitude
       );
-      const dataToUser = await responseToUser.json();
-      const timeToUser = dataToUser.routes[0].legs[0].duration.value;
 
-      const responseToDestination = await fetch(
-        `https://maps.googleapis.com/maps/api/directions/json?origin=${userLatitude},${userLongitude}&destination=${destinationLatitude},${destinationLongitude}&key=${directionsAPI}`
+      const timeToDestination = await getOlaDurationSeconds(
+        userLatitude,
+        userLongitude,
+        destinationLatitude,
+        destinationLongitude
       );
-      const dataToDestination = await responseToDestination.json();
-      const timeToDestination =
-        dataToDestination.routes[0].legs[0].duration.value;
 
-      const totalTime = (timeToUser + timeToDestination) / 60;
-      const price = (totalTime * 0.5).toFixed(2);
+      const totalMinutes = (timeToUser + timeToDestination) / 60;
+      const price = (totalMinutes * 0.5).toFixed(2);
 
-      return { ...marker, time: totalTime, price };
+      return { ...marker, time: totalMinutes, price };
     });
 
-    return await Promise.all(timesPromises);
-  } catch (error) {
-    console.error("Error calculating driver times:", error);
+    return await Promise.all(promises);
+  } catch (err) {
+    console.error("Error calculating driver times with Ola Maps:", err.message);
   }
 };
