@@ -94,7 +94,7 @@ const Map = () => {
         setLoadingDrivers(true);
         // const response = await fetch('http://192.168.0.192:3000/api/drivers');
         // const response = await fetch('http:///10.56.50.201:3000/api/drivers');
-        const response = await fetch('http:///10.56.2.157:3000/api/drivers');
+        const response = await fetch('http://172.20.10.11:3000/api/drivers');
         const json = await response.json();
         const driverData = json.data;
 
