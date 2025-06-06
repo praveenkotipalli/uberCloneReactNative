@@ -14,6 +14,8 @@ import { useLocationStore } from '../../store';
 import OlaMapTextInput from '../../components/OlaMapTextInput';
 import { router, useNavigation, useRouter } from 'expo-router';
 
+const PORT = process.env.PORT;
+
 
 const HomeScreen = () => {
 
@@ -83,7 +85,7 @@ const HomeScreen = () => {
         if (!user?.id) return;
         
 
-        const response = await fetch(`http://172.20.10.11:3000/api/user/${userId}/rides`);
+        const response = await fetch(`http://${PORT}/api/user/${userId}/rides`);
         const json = await response.json();
         const rides = json.data;
 
@@ -138,7 +140,7 @@ const HomeScreen = () => {
               source={{ uri: user?.imageUrl || 'https://via.placeholder.com/150' }}
               style={{ width: 30, height: 30, borderRadius: 40, marginRight: 10 }}
             /> */}
-            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Welcome, {user?.fullName || user.emailAddresses[0].emailAddress.split('@')[0]}👋🏻</Text>
+            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Welcome, {user?.fullName || user?.emailAddresses[0].emailAddress.split('@')[0]}👋🏻</Text>
             <View style={{  marginLeft: 'auto' }}>
               <SignOutButton />
               {/* <Image 

@@ -11,7 +11,7 @@ import { useNavigation } from 'expo-router';
 import tw from 'twrnc';
 
 
-const API_URL = 'http://172.20.10.11:3000'; // Replace with your backend URL
+const API_URL = `http://${process.env.PORT}`; // Replace with your backend URL
 // const API_URL = 'http://192.168.195.96:3000';
 // const API_URL = 'http://10.56.10.10:3000'; // Replace with your backend URL
 const Payment = ({fullName, email, amount, driverId, rideTime}) => {

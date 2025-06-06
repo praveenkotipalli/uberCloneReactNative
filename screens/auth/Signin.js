@@ -103,7 +103,7 @@ const Signin = ({ navigation }) => {
         />
 
         <CustomButton
-          title="Login In"
+          title="Log In"
           onPress={onSignInPress}
           style={{ marginTop: 0 }}
         />

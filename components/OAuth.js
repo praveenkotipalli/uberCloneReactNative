@@ -1,18 +1,56 @@
-import React from 'react';
-import { Alert, Image, Text, View, StyleSheet } from "react-native";
-import CustomButton from "./CustomButton";
-import { icons, COLORS } from "../constants";
-import tw from "twrnc";
+import React, { useCallback } from 'react';
+import { Image, Text, View, StyleSheet } from 'react-native';
+import * as AuthSession from 'expo-auth-session';
+import { useSSO, useUser } from '@clerk/clerk-expo';
+import CustomButton from './CustomButton';
+import { icons, COLORS } from '../constants';
+
+const PORT = process.env.PORT || 3000; // fallback if PORT isn't set
 
 const OAuth = () => {
-  const handleGoogleSignIn = async () => {
+  const { startSSOFlow } = useSSO();
+  const { user } = useUser();
+
+  const handleGoogleSignIn = useCallback(async () => {
     try {
-      // TODO: Implement Google OAuth
-      console.log('Google Sign In pressed');
-    } catch (error) {
-      console.error('Google Sign In Error:', error);
+      const { createdSessionId, setActive, signIn, signUp } = await startSSOFlow({
+        strategy: 'oauth_google',
+        redirectUrl: AuthSession.makeRedirectUri(),
+      });
+
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+
+        const name = user?.fullName ?? '';
+        const email = user?.primaryEmailAddress?.emailAddress ?? '';
+        const clerkId = user?.id;
+
+        if (!name || !email || !clerkId) {
+          console.warn('User data incomplete, not sending to backend.');
+          return;
+        }
+
+        const userData = { name, email, clerkId };
+        console.log('Attempting to store user data in Neon DB:', userData);
+
+        const response = await fetch(`http://${PORT}/api/user`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify(userData),
+        });
+
+        const responseText = await response.text();
+        console.log('Raw API Response:', responseText);
+      } else {
+        console.log('No session created, handle MFA or other flows');
+      }
+    } catch (err) {
+      console.error('OAuth Error:', JSON.stringify(err, null, 2));
     }
-  };
+  }, [startSSOFlow, user]);
 
   return (
     <View style={styles.container}>
@@ -25,14 +63,13 @@ const OAuth = () => {
       <CustomButton
         title="Log In with Google"
         onPress={handleGoogleSignIn}
-        // IconLeft={() => (
-        //   <Image
-        //     source={icons.google}
-        //     style={styles.googleIcon}
-        //     resizeMode="contain"
-        //   />
-        // )}
-        
+        IconLeft={() => (
+          <Image
+            source={icons.google}
+            style={styles.googleIcon}
+            resizeMode="contain"
+          />
+        )}
         style={styles.googleButton}
         textStyle={styles.googleButtonText}
       />
@@ -69,16 +106,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     shadowOpacity: 0,
-    marginTop: 0,
     paddingVertical: 10,
-    // paddingHorizontal: 16,
   },
   googleButtonText: {
     color: '#222',
     fontWeight: 'bold',
     marginLeft: 8,
     fontSize: 16,
-    // paddingBottom: 5,
   },
   googleIcon: {
     width: 22,

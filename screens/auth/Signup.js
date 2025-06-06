@@ -9,6 +9,8 @@ import { useSignUp } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import PendingVerification from './PendingVerification';
 
+const PORT = process.env.PORT ;
+
 const Signup = ({ navigation }) => {
 
   const { isLoaded, signUp, setActive } = useSignUp()
@@ -59,7 +61,7 @@ const Signup = ({ navigation }) => {
           
           console.log('Attempting to store user data in Neon DB:', userData);
           
-          const response = await fetch('http://192.168.0.192:3000/api/user', {
+          const response = await fetch(`http://${PORT}/api/user`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

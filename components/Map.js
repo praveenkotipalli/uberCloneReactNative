@@ -8,6 +8,8 @@ import { icons } from '../constants';
 
 import polyline from '@mapbox/polyline';
 
+const PORT = process.env.PORT;
+
 /** Ola returns geometry encoded with polyline-algorithm */
 export const decodePolyline = (encoded) =>
   polyline.decode(encoded).map(([lat, lng]) => ({ latitude: lat, longitude: lng }));
@@ -94,7 +96,7 @@ const Map = () => {
         setLoadingDrivers(true);
         // const response = await fetch('http://192.168.0.192:3000/api/drivers');
         // const response = await fetch('http:///10.56.50.201:3000/api/drivers');
-        const response = await fetch('http://172.20.10.11:3000/api/drivers');
+        const response = await fetch(`http://${PORT}/api/drivers`);
         const json = await response.json();
         const driverData = json.data;
 
